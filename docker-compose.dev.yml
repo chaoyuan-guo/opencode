@@ -1,0 +1,62 @@
+services:
+  opencode-server:
+    build:
+      context: .
+      dockerfile: docker/dev/Dockerfile
+    working_dir: /workspace/opencode
+    command: >
+      bash -lc "
+      bun install --frozen-lockfile &&
+      bun run --cwd packages/opencode --conditions=browser src/index.ts serve --hostname 0.0.0.0 --port 14096
+      "
+    ports:
+      - "14096:14096"
+    volumes:
+      - type: bind
+        source: ${HOST_REPO_ROOT}
+        target: /workspace/opencode
+      - type: volume
+        source: opencode_node_modules
+        target: /workspace/opencode/node_modules
+      - type: bind
+        source: ${HOST_KNOWLEDGE_ROOT}
+        target: /workspace/knowledge_data
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:14096/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 24
+      start_period: 120s
+
+  opencode-web:
+    build:
+      context: .
+      dockerfile: docker/dev/Dockerfile
+    working_dir: /workspace/opencode
+    environment:
+      CHOKIDAR_USEPOLLING: "true"
+      VITE_OPENCODE_SERVER_HOST: localhost
+      VITE_OPENCODE_SERVER_PORT: "14096"
+    command: >
+      bash -lc "
+      bun install --frozen-lockfile &&
+      bun run --cwd packages/app dev -- --host 0.0.0.0 --port 3000
+      "
+    depends_on:
+      opencode-server:
+        condition: service_healthy
+    ports:
+      - "13000:3000"
+    volumes:
+      - type: bind
+        source: ${HOST_REPO_ROOT}
+        target: /workspace/opencode
+      - type: volume
+        source: opencode_node_modules
+        target: /workspace/opencode/node_modules
+      - type: bind
+        source: ${HOST_KNOWLEDGE_ROOT}
+        target: /workspace/knowledge_data
+
+volumes:
+  opencode_node_modules:
