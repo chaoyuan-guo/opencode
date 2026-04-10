@@ -6,10 +6,7 @@ services:
     env_file: .env
     working_dir: /workspace/opencode
     command: >
-      bash -lc "
-      bun install --frozen-lockfile &&
-      bun run --cwd packages/opencode --conditions=browser src/index.ts serve --hostname 0.0.0.0 --port 14096
-      "
+      bash -lc " bun install --frozen-lockfile && bun run --cwd packages/opencode --conditions=browser src/index.ts serve --hostname 0.0.0.0 --port 14096 "
     ports:
       - "14096:14096"
     volumes:
@@ -22,11 +19,14 @@ services:
       - type: bind
         source: ${HOST_KNOWLEDGE_ROOT}
         target: /workspace/knowledge_data
+      - type: bind
+        source: ./runtime_config/knowledge_data_AGENTS.md
+        target: /workspace/knowledge_data/AGENTS.md
       - type: volume
         source: opencode_data
         target: /root/.local/share/opencode
     healthcheck:
-      test: ["CMD", "curl", "-fsS", "http://127.0.0.1:14096/health"]
+      test: [ "CMD", "curl", "-fsS", "http://127.0.0.1:14096/health" ]
       interval: 10s
       timeout: 5s
       retries: 24
@@ -42,10 +42,7 @@ services:
       VITE_OPENCODE_SERVER_HOST: localhost
       VITE_OPENCODE_SERVER_PORT: "14096"
     command: >
-      bash -lc "
-      bun install --frozen-lockfile &&
-      bun run --cwd packages/app dev -- --host 0.0.0.0 --port 3000
-      "
+      bash -lc " bun install --frozen-lockfile && bun run --cwd packages/app dev -- --host 0.0.0.0 --port 3000 "
     depends_on:
       opencode-server:
         condition: service_healthy
