@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: docker/dev/Dockerfile
+    env_file: .env
     working_dir: /workspace/opencode
     command: >
       bash -lc "
@@ -21,6 +22,9 @@ services:
       - type: bind
         source: ${HOST_KNOWLEDGE_ROOT}
         target: /workspace/knowledge_data
+      - type: volume
+        source: opencode_data
+        target: /root/.local/share/opencode
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://127.0.0.1:14096/health"]
       interval: 10s
@@ -60,3 +64,4 @@ services:
 
 volumes:
   opencode_node_modules:
+  opencode_data:
