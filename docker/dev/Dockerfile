@@ -10,6 +10,9 @@ RUN printf 'deb http://mirrors.aliyun.com/debian trixie main contrib non-free no
     curl \
     git \
     openssh-client \
+    unzip \
   && rm -rf /var/lib/apt/lists/*
+
+RUN bun install -g pyright @biomejs/biome eslint oxlint
 
 WORKDIR /workspace
